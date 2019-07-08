@@ -1,0 +1,93 @@
+#! /usr/bin/env python
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as pp
+
+# a = SLS                 #d73027
+# b = Maxwell             #fc8d59
+# c = Burgers             #fee090
+# d = Extended Burgers    #91bfdb
+# e = Andrade             #4575b4
+
+#### LOAD DATA
+
+# full time series:
+sigma = np.loadtxt('output_files/sigma_fulltime.dat')
+ep = np.loadtxt('output_files/ep_fulltime.dat')
+time = np.loadtxt('output_files/fulltime.dat')
+
+# fitting data:
+tauMs = np.loadtxt('output_files/tauM_fit.dat')
+ntest = len(tauMs)
+ntime = len(time)
+ep_tests = np.zeros((ntime,ntime))
+for i in range(ntest):
+    filen = 'output_files/ep_'+str(i)+'.dat'
+    ep_tests[i,:] = np.loadtxt(filen)
+
+#### FIND BEST FIT TEST
+
+tfit = 94.e3     # time to begin fitting (y)
+ifit = np.where(time>=tfit)[0]
+u_data = ep[ifit]
+chi=np.zeros(ntest)
+for i in range(ntest):
+    chi[i] = np.sum((ep_tests[i,ifit]-u_data)**2)
+
+imin = np.argmin(chi)
+print 'The best fit Maxwell time is',tauMs[imin],'y'
+
+#### PLOT FIGURES
+
+fig=plt.figure(1,figsize=(7,3.2))
+plt.plot(time,sigma*1e-6,lw=2,color='#d73027')
+
+plt.xlim([0,100e3])
+plt.ylim([0,10])
+plt.xlabel(r'$t$ (y)',fontsize=14)
+plt.ylabel(r'$\sigma$ ($\times$10$^6$ Pa)',fontsize=14)
+plt.xticks([0.,20e3,40e3,60e3,80e3,100e3])
+plt.yticks([2,4,6,8,10])
+plt.tight_layout()
+plt.savefig('fig_A2a.pdf')
+
+fig=plt.figure(2,figsize=(7,3.2))
+for i in range(ntest):
+    plt.plot(time,ep_tests[i,:]*1.e3,'0.8')
+plt.plot(time,ep*1.e3,lw=2,color='#d73027')
+plt.plot([tfit,tfit],[0,10],'k:')
+plt.xlim([0,100e3])
+plt.ylim([0,10])
+plt.xlabel(r'$t$ (y)',fontsize=14)
+plt.ylabel(r'$\varepsilon$ ($\times$10$^{-3}$)',fontsize=14)
+plt.xticks([0.,20e3,40e3,60e3,80e3,100e3])
+plt.yticks([2,4,6,8,10])
+plt.tight_layout()
+plt.savefig('fig_A2b.pdf')
+
+fig=plt.figure(3,figsize=(3.5,3.2))
+plt.plot(time,ep_tests[imin,:]*1.e3,'--',lw=2,color='k')
+plt.plot(time,ep*1.e3,lw=2,color='#d73027')
+plt.plot([tfit,tfit],[0,10],'k:')
+plt.xlim([80e3,100e3])
+plt.ylim([7.2,7.7])
+plt.xlabel(r'$t$ (y)',fontsize=14)
+plt.ylabel(r'$\varepsilon$ ($\times$10$^3$)',fontsize=14)
+plt.xticks([80e3,90e3,100e3])
+plt.yticks([7.3,7.4,7.5,7.6,7.7])
+plt.tight_layout()
+plt.savefig('fig_A2c.pdf')
+
+fig=plt.figure(4,figsize=(2.8,3.2))
+plt.plot(tauMs,chi,'-',lw=2,color='k')
+plt.ylim([0.,0.006])
+plt.xticks([500,1500,2500])
+plt.yticks([0.002,0.004,0.006])
+plt.xlabel(r'$\tau_{\rm M}$ (y)',fontsize=14)
+plt.ylabel(r'$\chi^2$',fontsize=14)
+plt.tight_layout()
+plt.savefig('fig_A2d.pdf')
+
+plt.show()
+
